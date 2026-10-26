@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#030812">
+<title>J.A.R.V.I.S. — Interface</title>
+<style>
+:root{--cyan:#61f3ff;--blue:#4b8dff;--muted:#8da9bd;--bg:#030812}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 35%,#0b1b32 0%,#050b17 45%,#02050b 100%);color:#e9fbff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;overflow:hidden}
+.app{min-height:100svh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 18px env(safe-area-inset-bottom);max-width:680px;margin:auto;position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;padding:17px 0 8px;z-index:2}
+.brand{font-size:12px;letter-spacing:.28em;color:var(--cyan);font-weight:700}
+.sub{font-size:10px;letter-spacing:.16em;color:#718da7;margin-top:5px}
+.status{font-size:10px;letter-spacing:.13em;color:#8ef7ff;border:1px solid #2e7583;border-radius:30px;padding:7px 10px;background:#061923}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;position:relative}
+.orb-wrap{width:min(82vw,390px);aspect-ratio:1;position:relative;display:grid;place-items:center;filter:drop-shadow(0 0 28px #0a8ca844)}
+canvas{width:100%;height:100%;position:absolute;inset:0}
+.core{position:absolute;width:31%;aspect-ratio:1;border-radius:50%;border:1px solid #7bf9ff8a;box-shadow:0 0 24px #36dfff33,inset 0 0 22px #1cc5ff25;background:radial-gradient(circle,#9ffaff30 0%,#1c91c522 48%,transparent 72%);animation:core 3s ease-in-out infinite}
+@keyframes core{50%{transform:scale(1.08);opacity:.7}}
+.ring{position:absolute;width:69%;aspect-ratio:1;border:1px solid #5eefff44;border-radius:50%;transform:rotateX(65deg);box-shadow:0 0 18px #00cfff15}
+.ring.two{width:87%;transform:rotateY(67deg) rotateX(12deg);border-style:dashed;animation:spin 20s linear infinite}
+@keyframes spin{to{transform:rotateY(67deg) rotateX(12deg) rotateZ(360deg)}}
+.heading{text-align:center;margin-top:-8px;z-index:1}
+h1{font-size:24px;letter-spacing:.24em;font-weight:500;margin:0;text-shadow:0 0 20px #3feaff55}
+.tag{font-size:10px;color:#769bb2;letter-spacing:.23em;margin-top:9px}
+.message{max-width:90%;text-align:center;color:#b9d6e5;font-size:14px;line-height:1.5;min-height:42px;margin:20px auto 0}
+.controls{display:flex;justify-content:center;align-items:center;gap:18px;padding:16px 0 22px;z-index:2}
+.mic{width:72px;height:72px;border-radius:50%;border:1px solid #73f5ff;background:radial-gradient(circle at 40% 25%,#16415c,#071827 65%);color:var(--cyan);box-shadow:0 0 28px #00cfff28,inset 0 0 20px #00d9ff12;display:grid;place-items:center;cursor:pointer}
+.mic:active{transform:scale(.96)}.mic svg{width:27px;height:27px}
+.small{width:43px;height:43px;border-radius:50%;background:#091625;border:1px solid #24495e;color:#9bd8e7;display:grid;place-items:center;cursor:pointer}
+.bottom{display:flex;justify-content:space-between;border-top:1px solid #1b3547;padding:13px 0 16px;color:#557b92;font-size:9px;letter-spacing:.14em}
+.hint{position:absolute;bottom:118px;font-size:10px;color:#52798e;text-align:center;letter-spacing:.08em;width:100%}
+@media(min-width:600px){.orb-wrap{width:360px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div><div class="brand">STARK INDUSTRIES <span style="color:#53788f">/ AI</span></div><div class="sub">PERSONAL INTELLIGENCE SYSTEM</div></div><div class="status" id="status">● STANDBY</div></header>
+<main>
+<div class="orb-wrap" aria-label="Esfera molecular animada">
+<canvas id="orb"></canvas><div class="ring"></div><div class="ring two"></div><div class="core"></div>
+</div>
+<div class="heading"><h1>J.A.R.V.I.S.</h1><div class="tag">JUST A RATHER VERY INTELLIGENT SYSTEM</div></div>
+<div class="message" id="message">Sistema pronto.<br>Toque no microfone para iniciar uma conversa.</div>
+<div class="hint" id="hint">INTERFACE EXPERIMENTAL · PROTÓTIPO LOCAL</div>
+</main>
+<div class="controls">
+<button class="small" id="clear" aria-label="Limpar conversa" title="Limpar">↺</button>
+<button class="mic" id="mic" aria-label="Falar com JARVIS" title="Falar com JARVIS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></button>
+<button class="small" id="voice" aria-label="Repetir mensagem" title="Repetir">♫</button>
+</div>
+<footer class="bottom"><span>JARVIS CORE · PROTOTYPE 0.1</span><span id="clock">SYSTEM ONLINE</span></footer>
+</div>
+<script>
+const canvas=document.getElementById('orb'),ctx=canvas.getContext('2d');
+let w=0,h=0,pts=[],phase=0,listening=false;
+function resize(){const r=canvas.getBoundingClientRect();const d=Math.min(devicePixelRatio||1,2);canvas.width=r.width*d;canvas.height=r.height*d;w=canvas.width;h=canvas.height;ctx.setTransform(d,0,0,d,0,0);makePoints(r.width,r.height)}
+function makePoints(W,H){pts=[];const R=Math.min(W,H)*.36;const n=430;for(let i=0;i<n;i++){let y=1-2*(i+.5)/n;let rr=Math.sqrt(1-y*y);let a=Math.PI*(3-Math.sqrt(5))*i;pts.push({x:Math.cos(a)*rr*R,y:y*R,z:Math.sin(a)*rr*R,seed:Math.random()*6.28})}}
+function draw(){const W=canvas.clientWidth,H=canvas.clientHeight;ctx.clearRect(0,0,W,H);phase+=.004;const cX=W/2,cY=H/2,R=Math.min(W,H)*.36;const projected=[];for(const p of pts){const x=p.x*Math.cos(phase)+p.z*Math.sin(phase);const z=-p.x*Math.sin(phase)+p.z*Math.cos(phase);const scale=2.5/(2.5+z/R*.45);projected.push({x:cX+x*scale,y:cY+p.y*scale,z,scale,seed:p.seed})}
+ctx.lineWidth=.55;for(let i=0;i<projected.length;i++){const a=projected[i];for(let j=i+1;j<projected.length;j++){const b=projected[j],dx=a.x-b.x,dy=a.y-b.y,dist=Math.hypot(dx,dy);if(dist<(listening?26:21)&&Math.abs(a.z-b.z)<45){ctx.strokeStyle=`rgba(${listening?'95,255,235':'61,190,255'},${(1-dist/(listening?26:21))*.23})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}}
+for(const p of projected){const glow=.45+.45*Math.sin(phase*2+p.seed);ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.55,1.25*p.scale),0,Math.PI*2);ctx.fillStyle=`rgba(${listening?'139,255,221':'94,227,255'},${glow})`;ctx.fill()}
+requestAnimationFrame(draw)}
+resize();addEventListener('resize',resize);draw();
+const status=document.getElementById('status'),message=document.getElementById('message'),hint=document.getElementById('hint');
+function setStatus(s){status.textContent='● '+s}
+function speak(text){if(!('speechSynthesis'in window)){message.innerHTML=text;return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.94;u.pitch=.82;u.onstart=()=>setStatus('SPEAKING');u.onend=()=>setStatus('STANDBY');speechSynthesis.speak(u)}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
+document.getElementById('mic').onclick=()=>{if(!SR){message.textContent='O reconhecimento de voz não está disponível neste navegador. Você ainda pode testar a interface; em seguida adaptaremos a entrada de voz.';setStatus('VOICE UNAVAILABLE');return}
+if(listening&&rec){rec.stop();return}rec=new SR();rec.lang='pt-BR';rec.interimResults=false;rec.maxAlternatives=1;rec.onstart=()=>{listening=true;setStatus('LISTENING');message.textContent='Estou ouvindo…';hint.textContent='FALE AGORA';};rec.onend=()=>{listening=false;hint.textContent='INTERFACE EXPERIMENTAL · PROTÓTIPO LOCAL';if(status.textContent.includes('LISTENING'))setStatus('STANDBY')};rec.onerror=()=>{listening=false;setStatus('VOICE ERROR');message.textContent='Não consegui acessar o reconhecimento de voz. Verifique a permissão do microfone ou teste outro navegador.'};rec.onresult=e=>{const said=e.results[0][0].transcript;message.textContent='Você: “'+said+'”';setStatus('PROCESSING');setTimeout(()=>{const answer='Recebi seu comando: '+said+'. Meu cérebro de inteligência artificial ainda não está conectado. Esta é a primeira interface do seu projeto.';message.textContent=answer;speak(answer)},500)};try{rec.start()}catch(e){message.textContent='Não foi possível iniciar o microfone. Tente novamente.'}};
+document.getElementById('voice').onclick=()=>{const t=message.textContent||'Sistema pronto.';speak(t)};
+document.getElementById('clear').onclick=()=>{speechSynthesis?.cancel?.();message.innerHTML='Sistema pronto.<br>Toque no microfone para iniciar uma conversa.';setStatus('STANDBY')};
+</script>
+</body></html>
